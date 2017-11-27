@@ -1,0 +1,5 @@
+Django==1.9
+djangorestframework==3.7.3
+pyTelegramBotAPI==3.4.2
+requests==2.9.1
+selenium==3.7.0
