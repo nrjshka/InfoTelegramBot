@@ -177,6 +177,7 @@ def setupdates():
 @server.route("/")
 def webhook():
 	bot.remove_webhook()
+	# Server url
 	bot.set_webhook(url="https://onfeedvkbot.herokuapp.com/bot")
 	membsers = db.getCount("users")
 	subs = db.getCount("subs")
