@@ -6,15 +6,10 @@ from urllib.parse import urlparse
 import re
 import os
 import json
-# Подключение либы для работы с телграмом
 import telebot
-# Подключение конфига
 import configure.index as config
-# Подключение фласка
 from flask import Flask, request, abort
-# Подключаем бд
 import db
-# Константы проекта
 import configure.const as const	
 import urllib
 
@@ -23,7 +18,7 @@ bot = telebot.TeleBot(config.token)
 server = Flask(__name__)
 CORS(server, supports_credentials=True)
 
-# Cтартовое сообщение
+# Starting message
 @bot.message_handler(commands=['start'])
 def start(message):
 	bot.send_message(message.chat.id, '<strong> ' + message.from_user.first_name + ', cпасибо, что установили нашего бота! ✌️</strong>\n\nVkFeedBot создан для работы ленты VK внутри Telegram.', parse_mode="HTML")
@@ -31,53 +26,53 @@ def start(message):
 	bot.send_message(int(message.chat.id), getCommandList(), parse_mode="HTML")
 
 
-# Хелп бота
-@bot.message_handler(commands=['help'])
+# Bot help
+@bot.messagege_handler(commands=['help'])
 def help(message):
 	bot.send_message(int(message.chat.id), getCommandList(), parse_mode="HTML")
 
 
-# Добавление группы VK
+# 'addlink' method
 @bot.message_handler(commands=['addlink'])
 def addlink(message):
 	bot.send_message(message.chat.id, "Введите URL группы, которую Вы хотели бы добавить?")
 	db.changeStatus(message.chat.id, const.status[const.ADDING_LINK])
 
 
-# Удаление группы VK
+# 'removelink' method
 @bot.message_handler(commands=['removelink'])
 def removelink(message):
 	bot.send_message(message.chat.id, "Введите URL группы, которую Вы хотели бы удалить?")
 	db.changeStatus(message.chat.id, const.status[const.REMOVING_LINK])
 
 
-# Проверка любого текста
+# Checking all text
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
-	# Получаем статус
+	# Getting status
 	status = db.getStatus(message.chat.id)
 	if status == const.status[const.UNACTIVE]:
-		# Если мы "неактивны"
+		# If user is 'unactive'
 		bot.send_message(message.chat.id, "Ась?Не слышу!")
 
 	elif status == const.status[const.ADDING_LINK]:
 		message.text = message.text.lower()
 
 		if message.text == "отмена":
-			# Если мы отменили действие
+			# If the cancel the action
 			db.changeStatus(message.chat.id, const.status[const.UNACTIVE])
 			bot.send_message(message.chat.id, "Добавление группы отменено.")
 			return 
 
-		# Если человек хочет добавить группу, то нужно проанализировать ее и вывести отвеь
+		# If a person wants to add a group, then you need to analyze it and display the answer
 		if checkURL(message.text):
-			# Меняем статус + добавляем ссылку
+			# Changinst status + add a group
 			db.changeStatus(message.chat.id, const.status[const.UNACTIVE])
 			
-			# Проверяем статус
+			# Checking status
 			linkStatus = db.addLink(pathParser(message.text).path[1:], message.chat.id)
 			if linkStatus == 0:
-				# Все хорошо
+				# "All" is ok
 				bot.send_message(message.chat.id, "Группа успешно добавлена ✅")
 			elif linkStatus == 1:
 				bot.send_message(message.chat.id, "Группа уже была добавлена")
@@ -91,26 +86,26 @@ def echo_message(message):
 		message.text = message.text.lower()
 
 		if message.text == "отмена":
-			# Если мы отменили действие
+			# If we canceled all actions
 			db.changeStatus(message.chat.id, const.status[const.UNACTIVE])
 			bot.send_message(message.chat.id, "Добавление группы отменено.")
 			return 
 
-		# Если человек хочет удалить группу, то нужно проанализировать ее и вывести ответ
+		# If a person wants to delete a group, then you need to analyze it and display a response
 		if checkURL(message.text):
-			# Меняет статус, если находит группу, то удаляет ее
+			# Changes the status, if it finds a group, then deletes it
 			db.changeStatus(message.chat.id, const.status[const.UNACTIVE])
 
 			linkStatus = db.removeLink(pathParser(message.text).path[1:])
 			
 			if linkStatus == 0:
-				# Все прошло хорошо
+				# All is ok
 				bot.send_message(message.chat.id, "Группа успешно удалена ✅")
 			elif linkStatus == 1:
-				# Не нашли такой группы
+				# Did not find such a group
 				bot.send_message(message.chat.id, "Такой группы нет 😲")
 			elif linkStatus == -1:
-				# Если произошла ошибка
+				# If error
 				bot.send_message(message.chat.id, "Произошла ошибка во время добавления группы")				
 			
 		else:
@@ -128,18 +123,18 @@ def checkURL(url):
 		return False
 
 def pathParser(url):
-	# Проверяем на соответствие url строке
+	# We check for correspondence to the url string
 	if '//' not in url:
 		url = '%s%s' % ('http://', url)
 
 	return urlparse(url)
 
-# Выдает список команд
+# Help list
 def getCommandList():
 	return "<strong>Команды бота:</strong>" + "\n\n" + "<a>/addlink</a> - Добавить группу VK\n" + "<a>/removelink</a> - Удалить группу VK"
 
 ''' 
-	Ниже идет работа с сервером
+	Near goes server work
 '''
 
 @server.route("/bot", methods=['POST'])
@@ -151,10 +146,10 @@ def getMessage():
 @server.route("/getsubs", methods=['POST', 'OPTIONS'])
 @cross_origin()
 def sendGroups():
-	''' Отправляет данные группы '''
+	''' Sending group data '''
 	result = db.getSubs()
 	
-	# Если была ошибка при выполнении 
+	# If where was an error 
 	if result == -1:
 		abort(400)
 
@@ -163,7 +158,7 @@ def sendGroups():
 @server.route("/setupdates", methods=['POST', 'OPTIONS'])
 @cross_origin()
 def setupdates():
-	''' На вход получает данные группы, которые нужно обновить'''
+	''' The input receives the data of the group that you want to update '''
 	content = request.get_json()
 
 	for post in content['content']: 
@@ -178,7 +173,7 @@ def setupdates():
 def webhook():
 	bot.remove_webhook()
 	# Server url
-	bot.set_webhook(url="https://onfeedvkbot.herokuapp.com/bot")
+	bot.set_webhook(url=config.token)
 	membsers = db.getCount("users")
 	subs = db.getCount("subs")
 

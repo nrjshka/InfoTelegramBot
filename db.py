@@ -6,24 +6,24 @@ import time
 
 def addUser(id):
 	''' 
-		Проверяет существует пользователь или нет, 
-		если нет - то добавляет в бд 
+		Checks whether the user exists or not,
+		if not - then adds to the database
 	'''
 
-	# Отвечает за подключение к базе данных
+	# DB connection
 	conn = sqlite3.connect("db.sqlite3")
 	
 	cursor = conn.cursor()
 
-	# Ищет пользователя с подключенным id
+	# Searching for users with id == param id
 	cursor.execute("SELECT * FROM users WHERE tgID = " + str(id))
 
 	result = cursor.fetchall()
 
 	if len(result) == 0:
-		# Если пользователь новый, то нужно его добавить
+		# If user is new, we should add him
 		try:
-			# Добавляем поле 
+			# Add a field 
 			cursor.execute("INSERT INTO users ('tgID') VALUES (?)" , [id, ])
 			conn.commit()
 		except:
@@ -33,12 +33,12 @@ def addUser(id):
 	conn.close()		 
 
 def changeStatus(id, status):
-	''' Меняет статус пользователя на отправленный '''
+	''' Changes the status of the user to the sent '''
 	conn = sqlite3.connect("db.sqlite3")
 
 	cursor = conn.cursor()
 	try:
-		# Обновляем статус
+		# Updating the status
 		cursor.execute("UPDATE users SET status = ? WHERE tgID = ?", [status, id])
 		conn.commit()
 	except:
@@ -48,30 +48,30 @@ def changeStatus(id, status):
 	conn.close()
 
 def getStatus(id):
-	''' Выдает статус пользователя с tgId = id '''
+	''' Gives user status with tgId = id '''
 	conn = sqlite3.connect("db.sqlite3")
 
 	cursor = conn.cursor()
 	try:
-		# Получаем статус
+		# Getting status
 		cursor.execute("SELECT status FROM users WHERE tgID = ?", [id])
-		# Получаем результат
+		# Gettubs result
 		result = cursor.fetchone()
 		conn.close()
-		# Отправляем статус(он идет третьим)
+		# Sending status(he goes third)
 		return result[0]
 	except:
 		raise Exception('Getting error status')
 
 		conn.close()
-		# -1 - ошибка при выполнении
+		# -1 - run-time error
 		return -1
 
 def addLink(url, id):
 	''' 
-		Добавляет ссылку в базу данных 
-		0 - успешно добавлено
-		1 - уже было добавлено
+		Adds a link to the database
+		0 - success adding
+		1 - has already been added
 		-1 - error code
 	'''
 	
@@ -79,15 +79,15 @@ def addLink(url, id):
 
 	cursor = conn.cursor()
 	try:
-		# Проверяем есть ли такая ссылка
+		# Check is there a suck link
 		cursor.execute("SELECT * FROM subs WHERE link = ?", [url])
 		result = cursor.fetchall()
-		# Если уже есть такая ссылка
+		
 		if len(result) > 0:
 			linkId = result[0][0]
 			print(linkId)
 			try:
-				# Получаем id пользователя
+				# Getting user id
 				cursor.execute("SELECT id FROM users WHERE tgId = ?", [id])
 				userId = cursor.fetchall()[0][0]
 					
@@ -95,12 +95,12 @@ def addLink(url, id):
 
 				result = cursor.fetchall()
 				if len(result) > 0:
-					# Если группа пользователем уже была добавлена
+					# If group has already been added
 					conn.close()
 					return 1
 				else:
 					
-					# Добавляем группу
+					# Adding a group 
 					cursor.execute("INSERT INTO connect (link, user) VALUES (?, ?)", [linkId, userId])
 					conn.commit()
 					conn.close()
@@ -113,21 +113,21 @@ def addLink(url, id):
 				
 				return -1
 
-		# Добавляем данные
+		# Adding a data
 		try:
-			# Добавляем URL группы в базу данных
+			# Add a group URL to the database
 			cursor.execute("INSERT INTO subs (link, lastTimeChanged) VALUES (?, ?)", [url, int(time.time())])
 			conn.commit()
 			
-			# Получаем id добавленной группы
+			# Get the id of the added group
 			cursor.execute("SELECT * FROM subs WHERE link = ?", [url])
 			linkId = cursor.fetchall()[0][0]
 
-			# Получаем id пользователя
+			# Getting user id
 			cursor.execute("SELECT id FROM users WHERE tgId = ?", [id])
 			userId = cursor.fetchall()[0][0]
 
-			# Добавляем группу
+			# Adding a group
 
 			cursor.execute("INSERT INTO connect (link, user) VALUES (?, ?)", [linkId, userId])
 			conn.commit()
@@ -150,21 +150,21 @@ def addLink(url, id):
 
 def removeLink(url):
 	"""
-		Удаляет ссылку из базы данных
-		0 - удалено успешно
-		1 - такой группы нет
-		-1 - произошла ошибка 
+		Removes a reference from the database
+		0 - succes status
+		1 - there is not such group
+		-1 - error status
 	"""
 
 	conn = sqlite3.connect("db.sqlite3")
 	cursor = conn.cursor()
 	try:
-		# Проверяем существует ли эта группа
+		# Check if this group exists
 		cursor.execute("SELECT * FROM subs WHERE link = ?", [url])
-		# Парсим результат
+		# Parse result
 		result = cursor.fetchall()
 		if len(result) == 1:
-			# Все идет по плану
+			# All is ok
 			cursor.execute("DELETE FROM subs WHERE link = ?", [url])
 			conn.commit()
 			conn.close()
@@ -172,7 +172,7 @@ def removeLink(url):
 			return 0
 
 		else:
-			# Все катиться в ...
+			# All is not ok
 			conn.close()
 
 			return 1
@@ -184,7 +184,7 @@ def removeLink(url):
 
 
 def getSubs():
-	''' Выдает сериализованные подписки '''
+	''' Gives serialized subscriptions '''
 
 	conn = sqlite3.connect("db.sqlite3")
 	cursor = conn.cursor()
@@ -194,14 +194,14 @@ def getSubs():
 
 		return result
 	except:
-		# Все плохо
+		# Fuck...
 		conn.close()
 
 		return -1
 
 
 def getCount(pol):
-	''' Выдает количество в таблице pol '''
+	''' Returning a count of pol '''
 
 	conn = sqlite3.connect("db.sqlite3")
 	cursor = conn.cursor()
@@ -210,15 +210,15 @@ def getCount(pol):
 
 		return cursor.fetchall()[0][0]
 	except:
-		# Все плохо
+		# Fuck
 
 		return -1
 
 
 def update(content, url):
-	''' Выдает список людей, у которых нужно обновить контент '''
+	''' List the people who need to update the content '''
 
-	# Нужно пофиксить это дерьмо
+	# FIX: need to fix
 	time = content['time']
 
 	outputArray = []

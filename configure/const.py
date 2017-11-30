@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-	Ниже представлен список констант проекта
+	Project consts
 '''
 
 UNACTIVE = 'unactive'
