@@ -18,4 +18,7 @@ When the server starts, Telegram Webhook is initialized. Also, it has a list of 
 </ol>
 
 # Parser
-<br>
+Runs every n seconds (the default value is 120).<br>
+Sends a POST request to the server; when you receive data - starts to run through the links. <br>
+Forms a json update list for each group - when new data is received, it sends to the server.<br>
+Now only <a href="https://vk.com">Vkontakte</a> support is added.<br>
