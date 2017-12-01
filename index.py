@@ -27,7 +27,7 @@ def start(message):
 
 
 # Bot help
-@bot.messagege_handler(commands=['help'])
+@bot.message_handler(commands=['help'])
 def help(message):
 	bot.send_message(int(message.chat.id), getCommandList(), parse_mode="HTML")
 
