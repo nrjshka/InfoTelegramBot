@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
 
-token = '463044045:AAHn0tjfG0TUngYED04KzRBvhujG6wvWnKE'
-server_url = "https://informativebot.herokuapp.com/bot"
+token = os.environ['TELEGRAM_TOKEN']
+server_url = "https://"+os.environ['HEROKU_APP_NAME'] + ".herokuapp.com"
+print(server_url)
