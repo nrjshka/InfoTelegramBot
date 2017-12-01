@@ -15,8 +15,8 @@ import urllib
 
 bot = telebot.TeleBot(config.token)
 	
-server = Flask(__name__)
-CORS(server, supports_credentials=True)
+app = Flask(__name__)
+CORS(app, supports_credentials=True)
 
 # Starting message
 @bot.message_handler(commands=['start'])
@@ -134,16 +134,16 @@ def getCommandList():
 	return "<strong>Команды бота:</strong>" + "\n\n" + "<a>/addlink</a> - Добавить группу VK\n" + "<a>/removelink</a> - Удалить группу VK"
 
 ''' 
-	Near goes server work
+	Near goes app work
 '''
 
-@server.route("/bot", methods=['POST'])
+@app.route("/bot", methods=['POST'])
 def getMessage():
 	bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
 	return "!", 200
 
 
-@server.route("/getsubs", methods=['POST', 'OPTIONS'])
+@app.route("/getsubs", methods=['POST', 'OPTIONS'])
 @cross_origin()
 def sendGroups():
 	''' Sending group data '''
@@ -155,7 +155,7 @@ def sendGroups():
 
 	return json.dumps(result)
 
-@server.route("/setupdates", methods=['POST', 'OPTIONS'])
+@app.route("/setupdates", methods=['POST', 'OPTIONS'])
 @cross_origin()
 def setupdates():
 	''' The input receives the data of the group that you want to update '''
@@ -169,15 +169,15 @@ def setupdates():
 				
 	return json.dumps({'status': 'ok'})
 
-@server.route("/")
+@app.route("/")
 def webhook():
 	bot.remove_webhook()
-	# Server url
+	# app url
 	bot.set_webhook(url=config.token)
 	membsers = db.getCount("users")
 	subs = db.getCount("subs")
 
 	return "<strong>Количество пользователей:</strong> {}<br> <strong>Количество групп:</strong> {}".format(membsers, subs) , 200
 
-server.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
-server = Flask(__name__)
+if __name__ == '__main__':
+	app.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
