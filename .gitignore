@@ -1,2 +1,4 @@
 *.pyc
-static
+.idea/
+.vscode/
+__pycache__/
